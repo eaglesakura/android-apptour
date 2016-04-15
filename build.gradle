@@ -1,19 +1,171 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+/**
+ * 1.0.x    : fork AppTour
+ */
+def ARTIFACT_VERSION = "1.0"
+def ARTIFACT_NAME = file(".").absoluteFile.name
+def ARTIFACT_INSTALL_TARGET = getArtifactInstallTarget()
 
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.3.0'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        classpath 'com.android.tools.build:gradle:2.0.+'
     }
 }
 
-allprojects {
+repositories {
+    maven { url "http://eaglesakura.github.io/maven/" }
+    mavenCentral()
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 23
+    }
+}
+
+// Local or maven
+if (!hasProperty("EGLIBRARY_COMPILE_LOCAL")) {
+    ext.EGLIBRARY_COMPILE_LOCAL = false
+}
+if (!hasProperty("ANDROID_SUPPORT_LIB_VERSION")) {
+    ext.ANDROID_SUPPORT_LIB_VERSION = "23.+"
+}
+if (!hasProperty("ANDROID_PLAYSERVICE_LIB_VERSION")) {
+    ext.ANDROID_PLAYSERVICE_LIB_VERSION = "+"
+}
+dependencies {
+    if (EGLIBRARY_COMPILE_LOCAL) {
+        /**
+         * UnitTest
+         */
+        androidTestCompile project(":eglibrary:android-devicetest-support")
+        testCompile project(":eglibrary:android-unittest-support")
+    } else {
+        /**
+         * UnitTest
+         */
+        androidTestCompile 'com.eaglesakura:android-devicetest-support:1.+'
+        testCompile 'com.eaglesakura:android-unittest-support:1.+'
+    }
+
+    /**
+     * support libs
+     */
+    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile "com.android.support:appcompat-v7:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile 'com.malinskiy:materialicons:1.0.2'
+}
+
+apply plugin: 'maven'
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+android.libraryVariants.all { variant ->
+    if (!"release".equals(variant.name) || "".equals(ARTIFACT_VERSION)) {
+        return;
+    }
+
+    task("javadoc", type: Javadoc) {
+        title = "${file(".").name} ver ${ARTIFACT_VERSION}"
+        description "Generates Android Javadoc for $variant.name."
+        source = variant.javaCompile.source
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar) + files("build/intermediates/classes/${variant.name}/")
+        options.links("http://docs.oracle.com/javase/7/docs/api/");
+        options.links("http://d.android.com/reference/");
+        exclude '**/BuildConfig.java'
+        exclude '**/*Dao.java' /* ignore greenDAO */
+        exclude '**/DaoMaster.java' /* ignore greenDAO */
+        exclude '**/DaoSession.java' /* ignore greenDAO */
+        exclude '**/R.java' /* ignore greenDAO */
+
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.encoding = "UTF-8"
+        project.configure(options) {
+            memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+            charSet = "UTF-8"
+        }
+    }
+
+
+    task("javadocJar", type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+    }
+}
+
+uploadArchives {
     repositories {
-        jcenter()
+        mavenDeployer {
+            repository(url: uri(ARTIFACT_INSTALL_TARGET))
+            pom.version = ARTIFACT_VERSION + getArtifactVersionSuffix()
+            pom.groupId = "com.eaglesakura"
+            pom.artifactId = ARTIFACT_NAME
+        }
+    }
+}
+
+[uploadArchives.repositories.mavenDeployer]*.pom*.whenConfigured { pom ->
+    pom.project {
+        inceptionYear '2016'
+        packaging 'aar'
+    }
+}
+
+task uploadJavadoc << {
+    def src = file("build/docs/javadoc/");
+    def dst = new File("${ARTIFACT_INSTALL_TARGET.absolutePath}/doc/${ARTIFACT_NAME}/");
+    dst.deleteDir();
+    dst.mkdirs();
+
+    ["/usr/bin/rsync", "-a", src.absolutePath, dst.absolutePath].execute().text;
+}
+
+/**
+ * バージョンを取得する
+ * CircleCIの場合、バージョン末尾にビルド番号を付与する
+ */
+def getArtifactVersionSuffix() {
+    if (System.env.CIRCLE_BUILD_NUM != null) {
+        // CircleCIのバージョンが指定されているので、そちらを利用する
+        return ".${System.env.CIRCLE_BUILD_NUM}"
+    } else {
+        return ".local"
+    }
+}
+
+/**
+ * Mavenの格納先を確定する
+ */
+def getArtifactInstallTarget() {
+    if (file("maven").directory) {
+        return file("maven");
+    } else if (System.env.CIRCLE_ARTIFACTS != null) {
+        return file(System.env.CIRCLE_ARTIFACTS);
+    } else if (System.env.MAVEN_LOCAL_REPO != null) {
+        return file(System.env.MAVEN_LOCAL_REPO);
+    } else {
+        return file("ci-release");
     }
 }
