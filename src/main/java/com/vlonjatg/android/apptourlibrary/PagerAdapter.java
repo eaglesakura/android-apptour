@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author Vlonjat Gashi (vlonjatg)
  */
-public class PagerAdapter extends FragmentPagerAdapter {
+class PagerAdapter extends FragmentPagerAdapter {
 
     private final List<Fragment> fragments;
 

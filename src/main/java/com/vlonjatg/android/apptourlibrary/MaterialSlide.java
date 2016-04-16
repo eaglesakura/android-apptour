@@ -13,7 +13,7 @@ import android.widget.TextView;
 /**
  * @author Vlonjat Gashi (vlonjatg)
  */
-public class MaterialSlide extends Fragment {
+class MaterialSlide extends Fragment {
 
     private static final String ARG_DRAWABLE = "drawable";
     private static final String ARG_TITLE = "title";
@@ -37,10 +37,11 @@ public class MaterialSlide extends Fragment {
 
     /**
      * Create Material Slide
-     * @param imageDrawable Image resource for the slide
-     * @param title String value of the slide title
-     * @param content String value of the slide content
-     * @param titleTextColor Color value of the title text color
+     *
+     * @param imageDrawable    Image resource for the slide
+     * @param title            String value of the slide title
+     * @param content          String value of the slide content
+     * @param titleTextColor   Color value of the title text color
      * @param contentTextColor Color value of the content text color
      * @return Returned the created slide
      */
