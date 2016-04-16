@@ -14,7 +14,6 @@ import android.support.v4.view.ViewPager;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -32,25 +31,25 @@ import java.util.Vector;
  */
 public class AppTourDelegate {
 
-    private final ArgbEvaluator argbEvaluator = new ArgbEvaluator();
-    private final ArrayList<Integer> colors = new ArrayList<>();
-    private final List<Fragment> fragments = new Vector<>();
-    private LockableViewPager introViewPager;
-    private RelativeLayout controlsRelativeLayout;
-    private Button skipIntroButton;
-    private Button doneSlideButton;
-    private ImageButton nextSlideImageButton;
-    private View separatorView;
-    private LinearLayout dotsLayout;
-    private TextView[] dots;
-    private PagerAdapter pagerAdapter;
-    private int currentPosition;
-    private int activeDotColor;
-    private int inactiveDocsColor;
-    private int numberOfSlides;
-    private boolean isSkipForceHidden;
-    private boolean isNextForceHidden;
-    private boolean isDoneForceHidden;
+    private final ArgbEvaluator mArgbEvaluator = new ArgbEvaluator();
+    private final ArrayList<Integer> mColors = new ArrayList<>();
+    private final List<Fragment> mFragments = new Vector<>();
+    private LockableViewPager mIntroViewPager;
+    private RelativeLayout mControlsRelativeLayout;
+    private Button mSkipIntroButton;
+    private Button mDoneSlideButton;
+    private ImageButton mNextSlideImageButton;
+    private View mSeparatorView;
+    private LinearLayout mDotsLayout;
+    private TextView[] mDots;
+    private PagerAdapter mPagerAdapter;
+    private int mCurrentPosition;
+    private int mActiveDotColor;
+    private int mInactiveDocsColor;
+    private int mNumberOfSlides;
+    private boolean mSkipForceHidden;
+    private boolean mNextForceHidden;
+    private boolean mDoneForceHidden;
 
     @NonNull
     private AppTourCompat mCompat;
@@ -97,41 +96,38 @@ public class AppTourDelegate {
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        Activity activity = mCompat.getActivity(this);
-//        activity.requestWindowFeature(Window.FEATURE_NO_TITLE);   // call Activity!!
+        mIntroViewPager = (LockableViewPager) mRootView.findViewById(R.id.AppTour_ViewPager);
+        mControlsRelativeLayout = (RelativeLayout) mRootView.findViewById(R.id.controlsRelativeLayout);
+        mSkipIntroButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
+        mNextSlideImageButton = (ImageButton) mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
+        mDoneSlideButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_Done);
+        mSeparatorView = mRootView.findViewById(R.id.AppTour_Separator);
+        mDotsLayout = (LinearLayout) mRootView.findViewById(R.id.AppTour_Nav_Dots);
 
-        introViewPager = (LockableViewPager) mRootView.findViewById(R.id.AppTour_ViewPager);
-        controlsRelativeLayout = (RelativeLayout) mRootView.findViewById(R.id.controlsRelativeLayout);
-        skipIntroButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
-        nextSlideImageButton = (ImageButton) mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
-        doneSlideButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_Done);
-        separatorView = mRootView.findViewById(R.id.AppTour_Separator);
-        dotsLayout = (LinearLayout) mRootView.findViewById(R.id.AppTour_Nav_Dots);
-
-        activeDotColor = Color.RED;
-        inactiveDocsColor = Color.WHITE;
+        mActiveDotColor = Color.RED;
+        mInactiveDocsColor = Color.WHITE;
 
         //Instantiate the PagerAdapter.
-        pagerAdapter = new PagerAdapter(mCompat.getFragmentManager(this), fragments);
-        introViewPager.setAdapter(pagerAdapter);
+        mPagerAdapter = new PagerAdapter(mCompat.getFragmentManager(this), mFragments);
+        mIntroViewPager.setAdapter(mPagerAdapter);
 
         mCompat.onTourInitialize(this, savedInstanceState);
 
-        numberOfSlides = fragments.size();
+        mNumberOfSlides = mFragments.size();
 
-        //Instantiate the indicator dots if there are more than one slide
-        if (numberOfSlides > 1) {
+        //Instantiate the indicator mDots if there are more than one slide
+        if (mNumberOfSlides > 1) {
             setViewPagerDots();
 
-            if (!isSkipForceHidden) {
-                skipIntroButton.setVisibility(View.VISIBLE);
+            if (!mSkipForceHidden) {
+                mSkipIntroButton.setVisibility(View.VISIBLE);
             }
         } else {
-            skipIntroButton.setVisibility(View.INVISIBLE);
-            nextSlideImageButton.setVisibility(View.INVISIBLE);
+            mSkipIntroButton.setVisibility(View.INVISIBLE);
+            mNextSlideImageButton.setVisibility(View.INVISIBLE);
 
-            if (!isDoneForceHidden) {
-                doneSlideButton.setVisibility(View.VISIBLE);
+            if (!mDoneForceHidden) {
+                mDoneSlideButton.setVisibility(View.VISIBLE);
             }
         }
 
@@ -169,7 +165,7 @@ public class AppTourDelegate {
      * default = true
      */
     public void setSwipeLock(boolean lock) {
-        introViewPager.setLocked(lock);
+        mIntroViewPager.setLocked(lock);
     }
 
     /**
@@ -178,11 +174,11 @@ public class AppTourDelegate {
      * @return ハンドリングを行ったらtrue
      */
     public boolean onBackPressed() {
-        int item = introViewPager.getCurrentItem();
+        int item = mIntroViewPager.getCurrentItem();
         if (item == 0) {
             return false;
         } else {
-            introViewPager.setCurrentItem(item - 1);
+            mIntroViewPager.setCurrentItem(item - 1);
             return true;
         }
     }
@@ -202,9 +198,9 @@ public class AppTourDelegate {
      * @param fragment Fragment of the slide to be added
      */
     public void addSlide(@NonNull Fragment fragment) {
-        fragments.add(fragment);
+        mFragments.add(fragment);
         addBackgroundColor(Color.TRANSPARENT);
-        pagerAdapter.notifyDataSetChanged();
+        mPagerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -214,9 +210,9 @@ public class AppTourDelegate {
      * @param color    Background color of the fragment
      */
     public void addSlide(@NonNull Fragment fragment, @ColorInt int color) {
-        fragments.add(fragment);
+        mFragments.add(fragment);
         addBackgroundColor(color);
-        pagerAdapter.notifyDataSetChanged();
+        mPagerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -225,7 +221,7 @@ public class AppTourDelegate {
      * @return Return slides
      */
     public List<Fragment> getSlides() {
-        return pagerAdapter.getFragments();
+        return mPagerAdapter.getFragments();
     }
 
     /**
@@ -234,7 +230,7 @@ public class AppTourDelegate {
      * @return Returns the current active slide index
      */
     public int getCurrentSlide() {
-        return introViewPager.getCurrentItem();
+        return mIntroViewPager.getCurrentItem();
     }
 
     /**
@@ -243,7 +239,7 @@ public class AppTourDelegate {
      * @param position Item index to select
      */
     public void setCurrentSlide(int position) {
-        introViewPager.setCurrentItem(position, true);
+        mIntroViewPager.setCurrentItem(position, true);
     }
 
     /**
@@ -252,7 +248,7 @@ public class AppTourDelegate {
      * @param text String value to set
      */
     public void setSkipText(@NonNull String text) {
-        skipIntroButton.setText(text);
+        mSkipIntroButton.setText(text);
     }
 
     /**
@@ -261,7 +257,7 @@ public class AppTourDelegate {
      * @param text String value to set
      */
     public void setDoneText(@NonNull String text) {
-        doneSlideButton.setText(text);
+        mDoneSlideButton.setText(text);
     }
 
     /**
@@ -270,21 +266,21 @@ public class AppTourDelegate {
      * @param color Color value to set
      */
     public void setSkipButtonTextColor(@ColorInt int color) {
-        skipIntroButton.setTextColor(color);
+        mSkipIntroButton.setTextColor(color);
     }
 
     /**
      * Set the next button color to white
      */
     public void setNextButtonColorToWhite() {
-        nextSlideImageButton.setImageResource(R.drawable.ic_next_white_24dp);
+        mNextSlideImageButton.setImageResource(R.drawable.ic_next_white_24dp);
     }
 
     /**
      * Set the next button color to black
      */
     public void setNextButtonColorToBlack() {
-        nextSlideImageButton.setImageResource(R.drawable.ic_next_black_24dp);
+        mNextSlideImageButton.setImageResource(R.drawable.ic_next_black_24dp);
     }
 
     /**
@@ -293,7 +289,7 @@ public class AppTourDelegate {
      * @param color Color value to set
      */
     public void setDoneButtonTextColor(@ColorInt int color) {
-        doneSlideButton.setTextColor(color);
+        mDoneSlideButton.setTextColor(color);
     }
 
     /**
@@ -302,7 +298,7 @@ public class AppTourDelegate {
      * @param color Color value to set
      */
     public void setSeparatorColor(@ColorInt int color) {
-        separatorView.setBackgroundColor(color);
+        mSeparatorView.setBackgroundColor(color);
     }
 
     /**
@@ -311,7 +307,7 @@ public class AppTourDelegate {
      * @param color Color value to set
      */
     public void setActiveDotColor(@ColorInt int color) {
-        activeDotColor = color;
+        mActiveDotColor = color;
     }
 
     /**
@@ -320,135 +316,135 @@ public class AppTourDelegate {
      * @param color Color value to set
      */
     public void setInactiveDocsColor(@ColorInt int color) {
-        inactiveDocsColor = color;
+        mInactiveDocsColor = color;
     }
 
     /**
      * Show the skip button
      */
     public void showSkip() {
-        skipIntroButton.setVisibility(View.VISIBLE);
-        isSkipForceHidden = false;
+        mSkipIntroButton.setVisibility(View.VISIBLE);
+        mSkipForceHidden = false;
     }
 
     /**
      * Hide the skip button
      */
     public void hideSkip() {
-        skipIntroButton.setVisibility(View.INVISIBLE);
-        isSkipForceHidden = true;
+        mSkipIntroButton.setVisibility(View.INVISIBLE);
+        mSkipForceHidden = true;
     }
 
     /**
      * Show the next button
      */
     public void showNext() {
-        nextSlideImageButton.setVisibility(View.VISIBLE);
-        isNextForceHidden = false;
+        mNextSlideImageButton.setVisibility(View.VISIBLE);
+        mNextForceHidden = false;
     }
 
     /**
      * Hide the next button
      */
     public void hideNext() {
-        nextSlideImageButton.setVisibility(View.INVISIBLE);
-        isNextForceHidden = true;
+        mNextSlideImageButton.setVisibility(View.INVISIBLE);
+        mNextForceHidden = true;
     }
 
     /**
      * Show the done button
      */
     public void showDone() {
-        doneSlideButton.setVisibility(View.VISIBLE);
-        isDoneForceHidden = false;
+        mDoneSlideButton.setVisibility(View.VISIBLE);
+        mDoneForceHidden = false;
     }
 
     /**
      * Hide the done button
      */
     public void hideDone() {
-        doneSlideButton.setVisibility(View.INVISIBLE);
-        isDoneForceHidden = true;
+        mDoneSlideButton.setVisibility(View.INVISIBLE);
+        mDoneForceHidden = true;
     }
 
     /**
-     * Show indicator dots
+     * Show indicator mDots
      */
     public void showIndicatorDots() {
-        dotsLayout.setVisibility(View.VISIBLE);
+        mDotsLayout.setVisibility(View.VISIBLE);
     }
 
     /**
-     * Hide indicator dots
+     * Hide indicator mDots
      */
     public void hideIndicatorDots() {
-        dotsLayout.setVisibility(View.INVISIBLE);
+        mDotsLayout.setVisibility(View.INVISIBLE);
     }
 
     private void addBackgroundColor(@ColorInt int color) {
-        colors.add(color);
+        mColors.add(color);
     }
 
     private void setListeners() {
-        introViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        mIntroViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (position < (pagerAdapter.getCount() - 1) && position < (colors.size() - 1)) {
+                if (position < (mPagerAdapter.getCount() - 1) && position < (mColors.size() - 1)) {
                     int color = (Integer)
-                            argbEvaluator.evaluate(positionOffset, colors.get(position), colors.get(position + 1));
-                    introViewPager.setBackgroundColor(color);
-                    controlsRelativeLayout.setBackgroundColor(color);
+                            mArgbEvaluator.evaluate(positionOffset, mColors.get(position), mColors.get(position + 1));
+                    mIntroViewPager.setBackgroundColor(color);
+                    mControlsRelativeLayout.setBackgroundColor(color);
                 } else {
-                    int color = colors.get(colors.size() - 1);
-                    introViewPager.setBackgroundColor(color);
-                    controlsRelativeLayout.setBackgroundColor(color);
+                    int color = mColors.get(mColors.size() - 1);
+                    mIntroViewPager.setBackgroundColor(color);
+                    mControlsRelativeLayout.setBackgroundColor(color);
                 }
             }
 
             @Override
             public void onPageSelected(int position) {
-                currentPosition = position;
+                mCurrentPosition = position;
 
                 //Hide SKIP button if last slide item, visible if not
-                if (position == numberOfSlides - 1) {
-                    if (!isSkipForceHidden) {
-                        fadeViewOut(skipIntroButton);
+                if (position == mNumberOfSlides - 1) {
+                    if (!mSkipForceHidden) {
+                        fadeViewOut(mSkipIntroButton);
                     }
                 } else {
-                    if (skipIntroButton.getVisibility() == View.INVISIBLE && !isSkipForceHidden) {
-                        fadeViewIn(skipIntroButton);
+                    if (mSkipIntroButton.getVisibility() == View.INVISIBLE && !mSkipForceHidden) {
+                        fadeViewIn(mSkipIntroButton);
                     }
                 }
 
                 //Hide NEXT button if last slide item and set DONE button
                 //visible, otherwise hide Done button and set NEXT button visible
-                if (position == numberOfSlides - 1) {
-                    if (!isNextForceHidden) {
-                        fadeViewOut(nextSlideImageButton);
+                if (position == mNumberOfSlides - 1) {
+                    if (!mNextForceHidden) {
+                        fadeViewOut(mNextSlideImageButton);
                     }
 
-                    if (!isDoneForceHidden) {
-                        fadeViewIn(doneSlideButton);
+                    if (!mDoneForceHidden) {
+                        fadeViewIn(mDoneSlideButton);
                     }
                 } else {
-                    if (nextSlideImageButton.getVisibility() == View.INVISIBLE && !isNextForceHidden) {
-                        fadeViewIn(nextSlideImageButton);
+                    if (mNextSlideImageButton.getVisibility() == View.INVISIBLE && !mNextForceHidden) {
+                        fadeViewIn(mNextSlideImageButton);
                     }
 
-                    if (doneSlideButton.getVisibility() == View.VISIBLE && !isDoneForceHidden) {
-                        fadeViewOut(doneSlideButton);
+                    if (mDoneSlideButton.getVisibility() == View.VISIBLE && !mDoneForceHidden) {
+                        fadeViewOut(mDoneSlideButton);
                     }
                 }
 
-                //Set dots
-                if (numberOfSlides > 1) {
-                    //Set current inactive dots color
-                    for (int i = 0; i < numberOfSlides; i++) {
-                        dots[i].setTextColor(inactiveDocsColor);
+                //Set mDots
+                if (mNumberOfSlides > 1) {
+                    //Set current inactive mDots color
+                    for (int i = 0; i < mNumberOfSlides; i++) {
+                        mDots[i].setTextColor(mInactiveDocsColor);
                     }
 
                     //Set current active dot color
-                    dots[position].setTextColor(activeDotColor);
+                    mDots[position].setTextColor(mActiveDotColor);
                 }
             }
 
@@ -457,25 +453,25 @@ public class AppTourDelegate {
             }
         });
 
-        skipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this));
-        nextSlideImageButton.setOnClickListener((it) -> introViewPager.setCurrentItem(currentPosition + 1, true));
-        doneSlideButton.setOnClickListener((it) -> mCompat.onClickTourDone(this));
+        mSkipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this));
+        mNextSlideImageButton.setOnClickListener((it) -> mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true));
+        mDoneSlideButton.setOnClickListener((it) -> mCompat.onClickTourDone(this));
     }
 
     private void setViewPagerDots() {
-        dots = new TextView[numberOfSlides];
+        mDots = new TextView[mNumberOfSlides];
 
-        //Set first inactive dots color
-        for (int i = 0; i < numberOfSlides; i++) {
-            dots[i] = new TextView(mCompat.getActivity(this));
-            dots[i].setText(Html.fromHtml("&#8226;"));
-            dots[i].setTextSize(30);
-            dots[i].setTextColor(inactiveDocsColor);
-            dotsLayout.addView(dots[i]);
+        //Set first inactive mDots color
+        for (int i = 0; i < mNumberOfSlides; i++) {
+            mDots[i] = new TextView(mCompat.getActivity(this));
+            mDots[i].setText(Html.fromHtml("&#8226;"));
+            mDots[i].setTextSize(30);
+            mDots[i].setTextColor(mInactiveDocsColor);
+            mDotsLayout.addView(mDots[i]);
         }
 
         //Set first active dot color
-        dots[0].setTextColor(activeDotColor);
+        mDots[0].setTextColor(mActiveDotColor);
     }
 
     private void fadeViewOut(final View view) {
