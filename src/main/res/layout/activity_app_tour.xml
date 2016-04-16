@@ -8,17 +8,17 @@
             android:id="@+id/AppTour.ViewPager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@+id/controlsRelativeLayout"/>
+            android:layout_above="@+id/AppTour.Nav.Root"/>
 
     <View
             android:id="@+id/AppTour.Separator"
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
-            android:layout_above="@+id/controlsRelativeLayout"
+            android:layout_above="@+id/AppTour.Nav.Root"
             android:background="@android:color/white"/>
 
     <RelativeLayout
-            android:id="@+id/controlsRelativeLayout"
+            android:id="@+id/AppTour.Nav.Root"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:layout_alignParentBottom="true">

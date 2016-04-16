@@ -14,12 +14,12 @@ import android.support.v4.view.ViewPager;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ public class AppTourDelegate {
     private final ArrayList<Integer> mColors = new ArrayList<>();
     private final List<Fragment> mFragments = new Vector<>();
     private LockableViewPager mIntroViewPager;
-    private RelativeLayout mControlsRelativeLayout;
+    private ViewGroup mControlsRoot;
     private Button mSkipIntroButton;
     private Button mDoneSlideButton;
     private ImageButton mNextSlideImageButton;
@@ -81,6 +81,8 @@ public class AppTourDelegate {
 
         /**
          * 初期化を行わせる
+         *
+         * 必要に応じてFragmentを追加させる
          */
         void onTourInitialize(@NonNull AppTourDelegate self, @Nullable Bundle savedInstanceState);
 
@@ -97,7 +99,7 @@ public class AppTourDelegate {
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
         mIntroViewPager = (LockableViewPager) mRootView.findViewById(R.id.AppTour_ViewPager);
-        mControlsRelativeLayout = (RelativeLayout) mRootView.findViewById(R.id.controlsRelativeLayout);
+        mControlsRoot = (ViewGroup) mRootView.findViewById(R.id.AppTour_Nav_Root);
         mSkipIntroButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
         mNextSlideImageButton = (ImageButton) mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
         mDoneSlideButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_Done);
@@ -393,11 +395,11 @@ public class AppTourDelegate {
                     int color = (Integer)
                             mArgbEvaluator.evaluate(positionOffset, mColors.get(position), mColors.get(position + 1));
                     mIntroViewPager.setBackgroundColor(color);
-                    mControlsRelativeLayout.setBackgroundColor(color);
+                    mControlsRoot.setBackgroundColor(color);
                 } else {
                     int color = mColors.get(mColors.size() - 1);
                     mIntroViewPager.setBackgroundColor(color);
-                    mControlsRelativeLayout.setBackgroundColor(color);
+                    mControlsRoot.setBackgroundColor(color);
                 }
             }
 
