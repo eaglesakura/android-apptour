@@ -28,7 +28,7 @@ public abstract class AppTour extends AppCompatActivity implements AppTourDelega
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(mTourDelegate.onCreateView());
+        setContentView(mTourDelegate.getView());
         mTourDelegate.onCreate(savedInstanceState);
         mTourDelegate.setSwipeLock(false);  // unlock user swipe
         mTourDelegate.setNextButtonColorToWhite();
@@ -60,7 +60,7 @@ public abstract class AppTour extends AppCompatActivity implements AppTourDelega
     }
 
     @Override
-    public final void onClickTourSkip(@NonNull AppTourDelegate self) {
+    public final void onClickTourSkip(@NonNull AppTourDelegate self, int tourPosition) {
         onSkipPressed();
     }
 

@@ -15,6 +15,7 @@ import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -62,6 +63,12 @@ public class AppTourDelegate {
      */
     private int mOldSystemUiVisiblity;
 
+    @ColorInt
+    private int mOldStatusBarColor;
+
+    @ColorInt
+    private int mOldNavigationBarColor;
+
     public AppTourDelegate(@NonNull AppTourCompat compat) {
         mCompat = compat;
     }
@@ -89,7 +96,7 @@ public class AppTourDelegate {
         /**
          * click "Skip"
          */
-        void onClickTourSkip(@NonNull AppTourDelegate self);
+        void onClickTourSkip(@NonNull AppTourDelegate self, int touIndex);
 
         /**
          * click "Done"
@@ -98,6 +105,8 @@ public class AppTourDelegate {
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        getView();
+
         mIntroViewPager = (LockableViewPager) mRootView.findViewById(R.id.AppTour_ViewPager);
         mControlsRoot = (ViewGroup) mRootView.findViewById(R.id.AppTour_Nav_Root);
         mSkipIntroButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
@@ -189,8 +198,10 @@ public class AppTourDelegate {
      * Viewを生成する
      */
     @NonNull
-    public View onCreateView() {
-        mRootView = mCompat.getLayoutInflater(this).inflate(R.layout.activity_app_tour, null);
+    public View getView() {
+        if (mRootView == null) {
+            mRootView = mCompat.getLayoutInflater(this).inflate(R.layout.activity_app_tour, null);
+        }
         return mRootView;
     }
 
@@ -383,6 +394,24 @@ public class AppTourDelegate {
         mDotsLayout.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * StatusBar / Navigation Barの色を元の状態へ戻す
+     */
+    public void rollbackThemeColor() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return;
+        }
+
+        Window window = mCompat.getActivity(this).getWindow();
+        if (mOldNavigationBarColor != 0) {
+            window.setNavigationBarColor(mOldNavigationBarColor);
+        }
+
+        if (mOldStatusBarColor != 0) {
+            window.setStatusBarColor(mOldStatusBarColor);
+        }
+    }
+
     private void addBackgroundColor(@ColorInt int color) {
         mColors.add(color);
     }
@@ -391,15 +420,30 @@ public class AppTourDelegate {
         mIntroViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                int color;
                 if (position < (mPagerAdapter.getCount() - 1) && position < (mColors.size() - 1)) {
-                    int color = (Integer)
+                    color = (Integer)
                             mArgbEvaluator.evaluate(positionOffset, mColors.get(position), mColors.get(position + 1));
-                    mIntroViewPager.setBackgroundColor(color);
-                    mControlsRoot.setBackgroundColor(color);
                 } else {
-                    int color = mColors.get(mColors.size() - 1);
-                    mIntroViewPager.setBackgroundColor(color);
-                    mControlsRoot.setBackgroundColor(color);
+                    color = mColors.get(mColors.size() - 1);
+                }
+
+                mIntroViewPager.setBackgroundColor(color);
+                mControlsRoot.setBackgroundColor(color);
+
+                // setup statusbar color
+                Window window = mCompat.getActivity(AppTourDelegate.this).getWindow();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (mOldNavigationBarColor == 0) {
+                        mOldNavigationBarColor = window.getNavigationBarColor();
+                    }
+                    if (mOldStatusBarColor == 0) {
+                        mOldStatusBarColor = window.getStatusBarColor();
+                    }
+
+                    window.setStatusBarColor(color);
+                    window.setNavigationBarColor(color);
                 }
             }
 
@@ -455,7 +499,7 @@ public class AppTourDelegate {
             }
         });
 
-        mSkipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this));
+        mSkipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this, mIntroViewPager.getCurrentItem()));
         mNextSlideImageButton.setOnClickListener((it) -> mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true));
         mDoneSlideButton.setOnClickListener((it) -> mCompat.onClickTourDone(this));
     }
