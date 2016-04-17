@@ -1,5 +1,7 @@
 package com.vlonjatg.android.apptourlibrary;
 
+import com.eaglesakura.android.apptour.AppTourDelegate;
+
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;

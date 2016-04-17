@@ -1,11 +1,11 @@
-package com.vlonjatg.android.apptourlibrary;
+package com.eaglesakura.android.apptour;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 
-class LockableViewPager extends ViewPager {
+public class LockableViewPager extends ViewPager {
     private boolean mLocked = true;
 
     public LockableViewPager(Context context) {
@@ -15,6 +15,7 @@ class LockableViewPager extends ViewPager {
     public LockableViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
+
 
     public void setLocked(boolean locked) {
         mLocked = locked;

@@ -1,4 +1,6 @@
-package com.vlonjatg.android.apptourlibrary;
+package com.eaglesakura.android.apptour;
+
+import com.vlonjatg.android.apptourlibrary.R;
 
 import android.animation.ArgbEvaluator;
 import android.app.Activity;
@@ -27,9 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-/**
- * @author Vlonjat Gashi (vlonjatg)
- */
 public class AppTourDelegate {
 
     private final ArgbEvaluator mArgbEvaluator = new ArgbEvaluator();

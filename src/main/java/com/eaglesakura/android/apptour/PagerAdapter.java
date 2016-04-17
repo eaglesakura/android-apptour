@@ -1,4 +1,4 @@
-package com.vlonjatg.android.apptourlibrary;
+package com.eaglesakura.android.apptour;
 
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
