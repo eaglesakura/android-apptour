@@ -95,7 +95,12 @@ public class AppTourDelegate {
         /**
          * click "Skip"
          */
-        void onClickTourSkip(@NonNull AppTourDelegate self, int touIndex);
+        void onClickTourSkip(@NonNull AppTourDelegate self, int tourIndex);
+
+        /**
+         * click "Next"
+         */
+        void onClickTourNext(@NonNull AppTourDelegate self, int tourIndex);
 
         /**
          * click "Done"
@@ -234,6 +239,10 @@ public class AppTourDelegate {
      */
     public List<Fragment> getSlides() {
         return mPagerAdapter.getFragments();
+    }
+
+    public Fragment getSlide(int position) {
+        return mPagerAdapter.getFragments().get(position);
     }
 
     /**
@@ -499,7 +508,11 @@ public class AppTourDelegate {
         });
 
         mSkipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this, mIntroViewPager.getCurrentItem()));
-        mNextSlideImageButton.setOnClickListener((it) -> mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true));
+        mNextSlideImageButton.setOnClickListener((it) -> {
+            int currentPosition = mCurrentPosition;
+            mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true);
+            mCompat.onClickTourNext(this, currentPosition);
+        });
         mDoneSlideButton.setOnClickListener((it) -> mCompat.onClickTourDone(this));
     }
 
