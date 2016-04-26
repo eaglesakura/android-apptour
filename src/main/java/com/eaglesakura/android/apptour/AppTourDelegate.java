@@ -54,6 +54,9 @@ public class AppTourDelegate {
     @NonNull
     private AppTourCompat mCompat;
 
+    @Nullable
+    private OnSlideChangeListener mSlideChangeListener;
+
     @NonNull
     private View mRootView;
 
@@ -106,6 +109,13 @@ public class AppTourDelegate {
          * click "Done"
          */
         void onClickTourDone(@NonNull AppTourDelegate self);
+    }
+
+    /**
+     * スライド変更時にコールバックする
+     */
+    public interface OnSlideChangeListener {
+        void onTourSlideChanged(@NonNull AppTourDelegate self, int tourIndex, @NonNull Fragment slide);
     }
 
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -172,6 +182,13 @@ public class AppTourDelegate {
         } else {
             decorView.setSystemUiVisibility(mOldSystemUiVisiblity);
         }
+    }
+
+    /**
+     * スライド変更時のハンドリングを行う
+     */
+    public void setSlideChangeListener(@Nullable OnSlideChangeListener slideChangeListener) {
+        mSlideChangeListener = slideChangeListener;
     }
 
     /**
@@ -261,6 +278,15 @@ public class AppTourDelegate {
      */
     public void setCurrentSlide(int position) {
         mIntroViewPager.setCurrentItem(position, true);
+    }
+
+    /**
+     * 次のスライドへ進む
+     */
+    public int nextSlide() {
+        int nextSlidePosition = getCurrentSlide() + 1;
+        setCurrentSlide(nextSlidePosition);
+        return nextSlidePosition;
     }
 
     /**
@@ -499,6 +525,11 @@ public class AppTourDelegate {
 
                     //Set current active dot color
                     mDots[position].setTextColor(mActiveDotColor);
+                }
+
+                // callback
+                if (mSlideChangeListener != null) {
+                    mSlideChangeListener.onTourSlideChanged(AppTourDelegate.this, position, getSlide(position));
                 }
             }
 
