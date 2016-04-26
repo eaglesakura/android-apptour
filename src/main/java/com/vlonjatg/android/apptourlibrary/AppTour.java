@@ -36,6 +36,8 @@ public abstract class AppTour extends AppCompatActivity implements AppTourDelega
         mTourDelegate.setNextButtonColorToWhite();
         mTourDelegate.setSkipButtonTextColor(Color.WHITE);
         mTourDelegate.setDoneButtonTextColor(Color.WHITE);
+        mTourDelegate.setOnSkipClickListener(it -> onSkipPressed());
+        mTourDelegate.setOnDoneClickListener(it -> onDonePressed());
     }
 
     @NonNull
@@ -59,16 +61,6 @@ public abstract class AppTour extends AppCompatActivity implements AppTourDelega
     @Override
     public final void onTourInitialize(@NonNull AppTourDelegate self, @Nullable Bundle savedInstanceState) {
         init(savedInstanceState);
-    }
-
-    @Override
-    public final void onClickTourSkip(@NonNull AppTourDelegate self, int tourPosition) {
-        onSkipPressed();
-    }
-
-    @Override
-    public final void onClickTourDone(@NonNull AppTourDelegate self) {
-        onDonePressed();
     }
 
     public void addSlide(@NonNull Fragment fragment) {

@@ -57,13 +57,22 @@ public class AppTourDelegate {
     @Nullable
     private OnSlideChangeListener mSlideChangeListener;
 
+    @Nullable
+    private OnClickListener mNextClickListener;
+
+    @Nullable
+    private OnClickListener mSkipClickListener;
+
+    @Nullable
+    private OnClickListener mDoneClickListener;
+
     @NonNull
     private View mRootView;
 
     /**
      * Immersive加工をする前のシステムUIフラグ
      */
-    private int mOldSystemUiVisiblity;
+    private int mOldSystemUiVisible;
 
     @ColorInt
     private int mOldStatusBarColor;
@@ -94,21 +103,13 @@ public class AppTourDelegate {
          * 必要に応じてFragmentを追加させる
          */
         void onTourInitialize(@NonNull AppTourDelegate self, @Nullable Bundle savedInstanceState);
+    }
 
+    public interface OnClickListener {
         /**
-         * click "Skip"
+         * ボタンが押された
          */
-        void onClickTourSkip(@NonNull AppTourDelegate self, int tourIndex);
-
-        /**
-         * click "Next"
-         */
-        void onClickTourNext(@NonNull AppTourDelegate self, int tourIndex);
-
-        /**
-         * click "Done"
-         */
-        void onClickTourDone(@NonNull AppTourDelegate self);
+        void onTourClick(@NonNull AppTourDelegate self);
     }
 
     /**
@@ -170,7 +171,7 @@ public class AppTourDelegate {
         //Set status bar to semi-transparent
         View decorView = mCompat.getActivity(this).getWindow().getDecorView();
         if (immersive) {
-            mOldSystemUiVisiblity = decorView.getSystemUiVisibility();
+            mOldSystemUiVisible = decorView.getSystemUiVisibility();
             decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                             | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -180,8 +181,20 @@ public class AppTourDelegate {
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
             );
         } else {
-            decorView.setSystemUiVisibility(mOldSystemUiVisiblity);
+            decorView.setSystemUiVisibility(mOldSystemUiVisible);
         }
+    }
+
+    public void setOnNextClickListener(@Nullable OnClickListener nextClickListener) {
+        mNextClickListener = nextClickListener;
+    }
+
+    public void setOnSkipClickListener(@Nullable OnClickListener skipClickListener) {
+        mSkipClickListener = skipClickListener;
+    }
+
+    public void setOnDoneClickListener(@Nullable OnClickListener doneClickListener) {
+        mDoneClickListener = doneClickListener;
     }
 
     /**
@@ -538,13 +551,22 @@ public class AppTourDelegate {
             }
         });
 
-        mSkipIntroButton.setOnClickListener((it) -> mCompat.onClickTourSkip(this, mIntroViewPager.getCurrentItem()));
-        mNextSlideImageButton.setOnClickListener((it) -> {
-            int currentPosition = mCurrentPosition;
-            mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true);
-            mCompat.onClickTourNext(this, currentPosition);
+        mSkipIntroButton.setOnClickListener((it) -> {
+            if (mSkipClickListener != null) {
+                mSkipClickListener.onTourClick(this);
+            }
         });
-        mDoneSlideButton.setOnClickListener((it) -> mCompat.onClickTourDone(this));
+        mNextSlideImageButton.setOnClickListener((it) -> {
+            if (mNextClickListener != null) {
+                mNextClickListener.onTourClick(this);
+            }
+            mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true);
+        });
+        mDoneSlideButton.setOnClickListener((it) -> {
+            if (mDoneClickListener != null) {
+                mDoneClickListener.onTourClick(this);
+            }
+        });
     }
 
     private void setViewPagerDots() {
