@@ -80,6 +80,11 @@ public class AppTourDelegate {
     @ColorInt
     private int mOldNavigationBarColor;
 
+    /**
+     * ナビゲーションバーの色を変更する場合はtrue
+     */
+    private boolean mNavigationBarColorControll = true;
+
     public AppTourDelegate(@NonNull AppTourCompat compat) {
         mCompat = compat;
     }
@@ -158,6 +163,14 @@ public class AppTourDelegate {
         }
 
         setListeners();
+    }
+
+    /**
+     * ナビゲーションバー / ステータスバーの色を同期する場合true
+     * Version >= Lollipop
+     */
+    public void setNavigationBarColorControll(boolean navigationBarColorControll) {
+        mNavigationBarColorControll = navigationBarColorControll;
     }
 
     /**
@@ -481,7 +494,7 @@ public class AppTourDelegate {
 
                 // setup statusbar color
                 Window window = mCompat.getActivity(AppTourDelegate.this).getWindow();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (mNavigationBarColorControll && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     if (mOldNavigationBarColor == 0) {
                         mOldNavigationBarColor = window.getNavigationBarColor();
                     }
