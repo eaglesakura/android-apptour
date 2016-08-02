@@ -10,7 +10,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.+'
+        classpath 'com.android.tools.build:gradle:2.2.0-alpha7'
         classpath 'me.tatarka:gradle-retrolambda:3.2.5' // support Lambda
     }
 }
@@ -24,8 +24,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'me.tatarka.retrolambda' /* Android Lambda Support */
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 23
+        targetSdkVersion 24
     }
 }
 
