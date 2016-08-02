@@ -36,6 +36,16 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
     }
+
+    lintOptions {
+        disable "DuplicateIds"
+        disable "NewApi"
+        disable "InvalidPackage"
+        disable "ProtectedPermissions"
+        disable "MissingTranslation"
+//        abortOnError false
+    }
+
 }
 
 // Local or maven
