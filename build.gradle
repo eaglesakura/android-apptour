@@ -1,40 +1,48 @@
 /**
- * 1.23.0.x    : fork AppTour / API Level 23
+ * 2.0.x      : bintray release
  */
-def ARTIFACT_VERSION = "1.23.0"
-def ARTIFACT_NAME = file(".").absoluteFile.name
-def ARTIFACT_INSTALL_TARGET = getArtifactInstallTarget()
+def ARTIFACT_VERSION = System.env.CIRCLE_TAG == null ?
+        "2.0" : System.env.CIRCLE_TAG.substring(System.env.CIRCLE_TAG.indexOf('v') + 1)
+def REPOSITORY_NAME = "maven"
+def BINTRAY_LICENSES = ["MIT"]
+def BINTRAY_LABELS = ["android"]
+def BINTRAY_API_KEY = System.env.BINTRAY_API_KEY
+def BINTRAY_GPG_PASS = System.env.BINTRAY_GPG_PASS
 
 buildscript {
     repositories {
         jcenter()
+        maven { url "https://maven.google.com" }
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
-        classpath 'me.tatarka:gradle-retrolambda:3.2.5' // support Lambda
+        classpath 'com.android.tools.build:gradle:3.0.0-beta2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
 repositories {
-    maven { url "http://eaglesakura.github.io/maven/" }
+    maven { url "https://maven.google.com" }
+    jcenter()
+    maven { url "https://dl.bintray.com/eaglesakura/maven/" }
     mavenCentral()
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'me.tatarka.retrolambda' /* Android Lambda Support */
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
     }
 
     lintOptions {
@@ -48,54 +56,26 @@ android {
 
 }
 
-// Local or maven
-if (!hasProperty("EGLIBRARY_COMPILE_LOCAL")) {
-    ext.EGLIBRARY_COMPILE_LOCAL = false
-}
-if (!hasProperty("ANDROID_SUPPORT_LIB_VERSION")) {
-    ext.ANDROID_SUPPORT_LIB_VERSION = "25.+"
-}
-if (!hasProperty("ANDROID_PLAYSERVICE_LIB_VERSION")) {
-    ext.ANDROID_PLAYSERVICE_LIB_VERSION = "+"
-}
 dependencies {
-    if (EGLIBRARY_COMPILE_LOCAL) {
-        /**
-         * UnitTest
-         */
-        androidTestCompile project(":eglibrary:android-devicetest-support")
-        testCompile project(":eglibrary:android-unittest-support")
-    } else {
-        /**
-         * UnitTest
-         */
-        androidTestCompile 'com.eaglesakura:android-devicetest-support:2.+'
-        testCompile 'com.eaglesakura:android-unittest-support:1.+'
+    testImplementation("com.eaglesakura:android-unittest-support:1.6.0") {
+        exclude(group: "com.eaglesakura", module: "java-commons")
+        exclude(group: "com.eaglesakura", module: "android-commons")
+        exclude(group: "com.android.support")
     }
+    androidTestImplementation("com.eaglesakura:android-devicetest-support:2.3.1") {
+        exclude(group: "com.eaglesakura", module: "java-commons")
+        exclude(group: "com.eaglesakura", module: "android-commons")
+        exclude(group: "com.android.support")
+    }
+    androidTestImplementation "com.eaglesakura:android-commons:2.3.build-35"
 
     /**
      * support libs
      */
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile "com.android.support:appcompat-v7:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile 'com.malinskiy:materialicons:1.0.2'
+    implementation "com.android.support:support-v4:26.0.1"
+    implementation "com.android.support:appcompat-v7:26.0.1"
 }
 
-/**
- * UnitTest & retro lambda
- */
-tasks.withType(Test) {
-    project.tasks
-            .findAll {
-        task -> (task.name ==~ /compile.*?TestJava.*?/)
-    }
-    .each { task ->
-        task.doFirst {
-            sourceCompatibility = JavaVersion.VERSION_1_8
-            targetCompatibility = JavaVersion.VERSION_1_8
-        }
-    }
-}
 apply plugin: 'maven'
 
 task sourcesJar(type: Jar) {
@@ -113,8 +93,12 @@ android.libraryVariants.all { variant ->
         description "Generates Android Javadoc for $variant.name."
         source = variant.javaCompile.source
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar) + files("build/intermediates/classes/${variant.name}/")
-        options.links("http://docs.oracle.com/javase/7/docs/api/");
+
+        classpath = files(ext.androidJar) +
+                files("build/intermediates/classes/${variant.name}/") +
+                fileTree("build/intermediates/exploded-aar").include("**/*.jar")
+
+        options.links("http://docs.oracle.com/javase/8/docs/api/");
         options.links("http://d.android.com/reference/");
         exclude '**/BuildConfig.java'
         exclude '**/*Dao.java' /* ignore greenDAO */
@@ -130,7 +114,6 @@ android.libraryVariants.all { variant ->
         }
     }
 
-
     task("javadocJar", type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from javadoc.destinationDir
@@ -142,57 +125,48 @@ android.libraryVariants.all { variant ->
     }
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: uri(ARTIFACT_INSTALL_TARGET))
-            pom.version = ARTIFACT_VERSION + getArtifactVersionSuffix()
-            pom.groupId = "com.eaglesakura"
-            pom.artifactId = ARTIFACT_NAME
-        }
-    }
-}
-
-[uploadArchives.repositories.mavenDeployer]*.pom*.whenConfigured { pom ->
-    pom.project {
-        inceptionYear '2016'
-        packaging 'aar'
-    }
-}
-
-task uploadJavadoc << {
-    def src = file("build/docs/javadoc/");
-    def dst = new File("${ARTIFACT_INSTALL_TARGET.absolutePath}/doc/${ARTIFACT_NAME}/");
-    dst.deleteDir();
-    dst.mkdirs();
-
-    ["/usr/bin/rsync", "-a", src.absolutePath, dst.absolutePath].execute().text;
-}
 
 /**
  * バージョンを取得する
  * CircleCIの場合、バージョン末尾にビルド番号を付与する
  */
 def getArtifactVersionSuffix() {
+    String CIRCLE_TAG = System.env.CIRCLE_TAG
+
+    if (CIRCLE_TAG != null) {
+        // TAGがある場合それを直接利用する
+        return ""
+    }
+
     if (System.env.CIRCLE_BUILD_NUM != null) {
         // CircleCIのバージョンが指定されているので、そちらを利用する
-        return ".${System.env.CIRCLE_BUILD_NUM}"
+        return ".build-${System.env.CIRCLE_BUILD_NUM}"
     } else {
-        return ".local"
+        return ".snapshot"
     }
 }
 
-/**
- * Mavenの格納先を確定する
- */
-def getArtifactInstallTarget() {
-    if (file("maven").directory) {
-        return file("maven");
-    } else if (System.env.CIRCLE_ARTIFACTS != null) {
-        return file(System.env.CIRCLE_ARTIFACTS);
-    } else if (System.env.MAVEN_LOCAL_REPO != null) {
-        return file(System.env.MAVEN_LOCAL_REPO);
-    } else {
-        return file("ci-release");
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+bintray {
+    user = 'eaglesakura'
+    key = BINTRAY_API_KEY
+    pkg {
+        repo = REPOSITORY_NAME
+        name = file(".").absoluteFile.name
+        licenses = BINTRAY_LICENSES
+        labels = BINTRAY_LABELS
+        issueTrackerUrl = "https://github.com/eaglesakura/${file(".").absoluteFile.name}/issues"
+        vcsUrl = "https://github.com/eaglesakura/${file(".").absoluteFile.name}"
+        version {
+            name = project.version
+            released = new Date()
+            gpg {
+                sign = true
+                passphrase = BINTRAY_GPG_PASS
+            }
+        }
     }
+    configurations = ['archives']
 }
