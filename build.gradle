@@ -74,6 +74,7 @@ dependencies {
      */
     implementation "com.android.support:support-v4:26.0.1"
     implementation "com.android.support:appcompat-v7:26.0.1"
+    implementation "com.android.support:support-annotations:26.0.1"
 }
 
 apply plugin: 'maven'
