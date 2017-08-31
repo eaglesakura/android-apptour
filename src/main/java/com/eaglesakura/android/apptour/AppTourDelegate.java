@@ -8,11 +8,15 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.AppCompatTextView;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,31 +26,30 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
 
 public class AppTourDelegate {
 
     private final ArgbEvaluator mArgbEvaluator = new ArgbEvaluator();
-    private final ArrayList<Integer> mColors = new ArrayList<>();
-    private final List<Fragment> mFragments = new Vector<>();
+
     private LockableViewPager mIntroViewPager;
-    private ViewGroup mControlsRoot;
     private Button mSkipIntroButton;
     private Button mDoneSlideButton;
     private ImageButton mNextSlideImageButton;
     private View mSeparatorView;
-    private LinearLayout mDotsLayout;
+
+    /**
+     * ドットの親レイアウト
+     */
+    private ViewGroup mDotsLayout;
+    /**
+     * ドット表示
+     */
     private TextView[] mDots;
     private PagerAdapter mPagerAdapter;
     private int mCurrentPosition;
     private int mActiveDotColor;
     private int mInactiveDocsColor;
-    private int mNumberOfSlides;
     private boolean mSkipForceHidden;
     private boolean mNextForceHidden;
     private boolean mDoneForceHidden;
@@ -66,13 +69,7 @@ public class AppTourDelegate {
     @Nullable
     private OnClickListener mDoneClickListener;
 
-    @NonNull
     private View mRootView;
-
-    /**
-     * Immersive加工をする前のシステムUIフラグ
-     */
-    private int mOldSystemUiVisible;
 
     @ColorInt
     private int mOldStatusBarColor;
@@ -83,31 +80,27 @@ public class AppTourDelegate {
     /**
      * ナビゲーションバーの色を変更する場合はtrue
      */
-    private boolean mNavigationBarColorControll = true;
+    private boolean mNavigationBarColorControl = true;
 
     public AppTourDelegate(@NonNull AppTourCompat compat) {
         mCompat = compat;
     }
 
     /**
-     * 互換性を保つ
+     * AppTourを組み込む
      */
     public interface AppTourCompat {
+        @LayoutRes
+        int getLayoutId(@NonNull AppTourDelegate self);
+
         @NonNull
         Activity getActivity(@NonNull AppTourDelegate self);
 
-        @NonNull
-        FragmentManager getFragmentManager(@NonNull AppTourDelegate self);
-
-        @NonNull
-        LayoutInflater getLayoutInflater(@NonNull AppTourDelegate self);
-
         /**
-         * 初期化を行わせる
-         *
-         * 必要に応じてFragmentを追加させる
+         * AppTourとして表示対象のコンテンツを習得する
          */
-        void onTourInitialize(@NonNull AppTourDelegate self, @Nullable Bundle savedInstanceState);
+        @NonNull
+        PagerAdapter newPagerAdapter(@NonNull AppTourDelegate self);
     }
 
     public interface OnClickListener {
@@ -124,36 +117,41 @@ public class AppTourDelegate {
         void onTourSlideChanged(@NonNull AppTourDelegate self, int tourIndex, @NonNull Fragment slide);
     }
 
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        getView();
+    public <T extends View> T onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        mIntroViewPager = (LockableViewPager) mRootView.findViewById(R.id.AppTour_ViewPager);
-        mControlsRoot = (ViewGroup) mRootView.findViewById(R.id.AppTour_Nav_Root);
-        mSkipIntroButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
-        mNextSlideImageButton = (ImageButton) mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
-        mDoneSlideButton = (Button) mRootView.findViewById(R.id.AppTour_Nav_Done);
+        {
+            int layoutId = mCompat.getLayoutId(this);
+            if (layoutId == 0) {
+                layoutId = R.layout.activity_app_tour;
+            }
+            Activity activity = mCompat.getActivity(this);
+            mRootView = inflater.inflate(layoutId, container, false);
+        }
+
+        mIntroViewPager = mRootView.findViewById(R.id.AppTour_ViewPager);
+        mSkipIntroButton = mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
+        mNextSlideImageButton = mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
+        mDoneSlideButton = mRootView.findViewById(R.id.AppTour_Nav_Done);
         mSeparatorView = mRootView.findViewById(R.id.AppTour_Separator);
-        mDotsLayout = (LinearLayout) mRootView.findViewById(R.id.AppTour_Nav_Dots);
+        mDotsLayout = mRootView.findViewById(R.id.AppTour_Nav_Dots);
 
         mActiveDotColor = Color.RED;
         mInactiveDocsColor = Color.WHITE;
 
-        //Instantiate the PagerAdapter.
-        mPagerAdapter = new PagerAdapter(mCompat.getFragmentManager(this), mFragments);
+        //Instantiate the PagerAdapterImpl.
+        mPagerAdapter = mCompat.newPagerAdapter(this);
         mIntroViewPager.setAdapter(mPagerAdapter);
 
-        mCompat.onTourInitialize(this, savedInstanceState);
-
-        mNumberOfSlides = mFragments.size();
-
         //Instantiate the indicator mDots if there are more than one slide
-        if (mNumberOfSlides > 1) {
+        if (mPagerAdapter.getCount() >= 2) {
+            // 2ページ以上のスライドがある
             setViewPagerDots();
 
             if (!mSkipForceHidden) {
                 mSkipIntroButton.setVisibility(View.VISIBLE);
             }
         } else {
+            // 1ページしかスライドがない
             mSkipIntroButton.setVisibility(View.INVISIBLE);
             mNextSlideImageButton.setVisibility(View.INVISIBLE);
 
@@ -162,40 +160,23 @@ public class AppTourDelegate {
             }
         }
 
+        //  Dump status bar color
+        Window window = mCompat.getActivity(AppTourDelegate.this).getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mOldNavigationBarColor = window.getNavigationBarColor();
+            mOldStatusBarColor = window.getStatusBarColor();
+        }
+
         setListeners();
+        return (T) mRootView;
     }
 
     /**
      * ナビゲーションバー / ステータスバーの色を同期する場合true
      * Version >= Lollipop
      */
-    public void setNavigationBarColorControll(boolean navigationBarColorControll) {
-        mNavigationBarColorControll = navigationBarColorControll;
-    }
-
-    /**
-     * Immersiveモード起動を行う場合はtrue
-     */
-    public void setImmersive(boolean immersive) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT) {
-            return;
-        }
-
-        //Set status bar to semi-transparent
-        View decorView = mCompat.getActivity(this).getWindow().getDecorView();
-        if (immersive) {
-            mOldSystemUiVisible = decorView.getSystemUiVisibility();
-            decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            );
-        } else {
-            decorView.setSystemUiVisibility(mOldSystemUiVisible);
-        }
+    public void setNavigationBarColorControl(boolean navigationBarColorControl) {
+        mNavigationBarColorControl = navigationBarColorControl;
     }
 
     public void setOnNextClickListener(@Nullable OnClickListener nextClickListener) {
@@ -246,46 +227,7 @@ public class AppTourDelegate {
      */
     @NonNull
     public View getView() {
-        if (mRootView == null) {
-            mRootView = mCompat.getLayoutInflater(this).inflate(R.layout.activity_app_tour, null);
-        }
         return mRootView;
-    }
-
-    /**
-     * Add a slide to the intro
-     *
-     * @param fragment Fragment of the slide to be added
-     */
-    public void addSlide(@NonNull Fragment fragment) {
-        mFragments.add(fragment);
-        addBackgroundColor(Color.TRANSPARENT);
-        mPagerAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Add a slide to the intro
-     *
-     * @param fragment Fragment of the slide to be added
-     * @param color    Background color of the fragment
-     */
-    public void addSlide(@NonNull Fragment fragment, @ColorInt int color) {
-        mFragments.add(fragment);
-        addBackgroundColor(color);
-        mPagerAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Return slides
-     *
-     * @return Return slides
-     */
-    public List<Fragment> getSlides() {
-        return mPagerAdapter.getFragments();
-    }
-
-    public Fragment getSlide(int position) {
-        return mPagerAdapter.getFragments().get(position);
     }
 
     /**
@@ -455,53 +397,59 @@ public class AppTourDelegate {
     }
 
     /**
-     * StatusBar / Navigation Barの色を元の状態へ戻す
+     * 変更された設定をすべて元に戻す
      */
-    public void rollbackThemeColor() {
+    public void dispose() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             return;
         }
 
         Window window = mCompat.getActivity(this).getWindow();
-        if (mOldNavigationBarColor != 0) {
-            window.setNavigationBarColor(mOldNavigationBarColor);
-        }
+        window.setNavigationBarColor(mOldNavigationBarColor);
+        window.setStatusBarColor(mOldStatusBarColor);
+    }
 
-        if (mOldStatusBarColor != 0) {
-            window.setStatusBarColor(mOldStatusBarColor);
+    protected Fragment getSlide(int position) {
+        if (mPagerAdapter instanceof FragmentPagerAdapter) {
+            return ((FragmentPagerAdapter) mPagerAdapter).getItem(position);
+        } else if (mPagerAdapter instanceof FragmentStatePagerAdapter) {
+            return ((FragmentStatePagerAdapter) mPagerAdapter).getItem(position);
+        } else {
+            throw new IllegalStateException("fragment not support");
         }
     }
 
-    private void addBackgroundColor(@ColorInt int color) {
-        mColors.add(color);
+    /**
+     * 各ページの背景色を習得する
+     */
+    private int getPageColor(int position) {
+        Fragment item = getSlide(position);
+        if (item instanceof AppTourPage) {
+            return ((AppTourPage) item).getBackgroundColor(this);
+        } else {
+            return Color.TRANSPARENT;
+        }
     }
 
     private void setListeners() {
+        ViewGroup controlsRoot = getView().findViewById(R.id.AppTour_Nav_Root);
         mIntroViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
                 int color;
-                if (position < (mPagerAdapter.getCount() - 1) && position < (mColors.size() - 1)) {
-                    color = (Integer)
-                            mArgbEvaluator.evaluate(positionOffset, mColors.get(position), mColors.get(position + 1));
+                if (position < (mPagerAdapter.getCount() - 1) && position < (mPagerAdapter.getCount() - 1)) {
+                    color = (Integer) mArgbEvaluator.evaluate(positionOffset, getPageColor(position), getPageColor(position + 1));
                 } else {
-                    color = mColors.get(mColors.size() - 1);
+                    color = getPageColor(mPagerAdapter.getCount() - 1);
                 }
 
                 mIntroViewPager.setBackgroundColor(color);
-                mControlsRoot.setBackgroundColor(color);
+                controlsRoot.setBackgroundColor(color);
 
                 // setup statusbar color
                 Window window = mCompat.getActivity(AppTourDelegate.this).getWindow();
-                if (mNavigationBarColorControll && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (mOldNavigationBarColor == 0) {
-                        mOldNavigationBarColor = window.getNavigationBarColor();
-                    }
-                    if (mOldStatusBarColor == 0) {
-                        mOldStatusBarColor = window.getStatusBarColor();
-                    }
-
+                if (mNavigationBarColorControl && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     window.setStatusBarColor(color);
                     window.setNavigationBarColor(color);
                 }
@@ -512,7 +460,7 @@ public class AppTourDelegate {
                 mCurrentPosition = position;
 
                 //Hide SKIP button if last slide item, visible if not
-                if (position == mNumberOfSlides - 1) {
+                if (position == (mPagerAdapter.getCount() - 1)) {
                     if (!mSkipForceHidden) {
                         fadeViewOut(mSkipIntroButton);
                     }
@@ -524,7 +472,7 @@ public class AppTourDelegate {
 
                 //Hide NEXT button if last slide item and set DONE button
                 //visible, otherwise hide Done button and set NEXT button visible
-                if (position == mNumberOfSlides - 1) {
+                if (position == (mPagerAdapter.getCount() - 1)) {
                     if (!mNextForceHidden) {
                         fadeViewOut(mNextSlideImageButton);
                     }
@@ -543,9 +491,9 @@ public class AppTourDelegate {
                 }
 
                 //Set mDots
-                if (mNumberOfSlides > 1) {
+                if (mPagerAdapter.getCount() > 1) {
                     //Set current inactive mDots color
-                    for (int i = 0; i < mNumberOfSlides; i++) {
+                    for (int i = 0; i < mPagerAdapter.getCount(); i++) {
                         mDots[i].setTextColor(mInactiveDocsColor);
                     }
 
@@ -583,11 +531,11 @@ public class AppTourDelegate {
     }
 
     private void setViewPagerDots() {
-        mDots = new TextView[mNumberOfSlides];
+        mDots = new AppCompatTextView[mPagerAdapter.getCount()];
 
         //Set first inactive mDots color
-        for (int i = 0; i < mNumberOfSlides; i++) {
-            mDots[i] = new TextView(mCompat.getActivity(this));
+        for (int i = 0; i < mDots.length; i++) {
+            mDots[i] = new AppCompatTextView(mCompat.getActivity(this));
             mDots[i].setText(Html.fromHtml("&#8226;"));
             mDots[i].setTextSize(30);
             mDots[i].setTextColor(mInactiveDocsColor);
