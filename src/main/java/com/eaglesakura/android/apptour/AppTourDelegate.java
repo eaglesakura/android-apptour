@@ -200,21 +200,6 @@ public class AppTourDelegate {
     }
 
     /**
-     * 戻るボタンが押されたら呼び出す。
-     *
-     * @return ハンドリングを行ったらtrue
-     */
-    public boolean onBackPressed() {
-        int item = mIntroViewPager.getCurrentItem();
-        if (item == 0) {
-            return false;
-        } else {
-            mIntroViewPager.setCurrentItem(item - 1);
-            return true;
-        }
-    }
-
-    /**
      * Viewを生成する
      */
     @NonNull
@@ -247,6 +232,22 @@ public class AppTourDelegate {
         int nextSlidePosition = getCurrentSlide() + 1;
         setCurrentSlide(nextSlidePosition);
         return nextSlidePosition;
+    }
+
+    /**
+     * 前のスライドに移動する
+     * 最初のページにいる場合、何もしない
+     *
+     * @return スライドページ
+     */
+    public int previousSlide() {
+        int position = getCurrentSlide() - 1;
+        if (position >= 0) {
+            setCurrentSlide(position);
+            return position;
+        } else {
+            return 0;
+        }
     }
 
     /**
@@ -300,14 +301,14 @@ public class AppTourDelegate {
     /**
      * Show indicator mDots
      */
-    public void showIndicatorDots() {
+    public void showIndicator() {
         mIndicator.setVisibility(this, View.VISIBLE);
     }
 
     /**
      * Hide indicator mDots
      */
-    public void hideIndicatorDots() {
+    public void hideIndicator() {
         mIndicator.setVisibility(this, View.INVISIBLE);
     }
 
