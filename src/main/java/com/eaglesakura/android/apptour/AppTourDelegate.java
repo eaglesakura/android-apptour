@@ -43,9 +43,6 @@ public class AppTourDelegate {
      * ドット表示
      */
     private PagerAdapter mPagerAdapter;
-    private int mCurrentPosition;
-    private int mActiveDotColor;
-    private int mInactiveDocsColor;
     private boolean mSkipForceHidden;
     private boolean mNextForceHidden;
     private boolean mDoneForceHidden;
@@ -129,9 +126,6 @@ public class AppTourDelegate {
         mNextSlideImageButton = mRootView.findViewById(R.id.AppTour_NextSlide);
         mDoneSlideButton = mRootView.findViewById(R.id.AppTour_Done);
         mIndicator = mRootView.findViewById(R.id.AppTour_Dots);
-
-        mActiveDotColor = Color.RED;
-        mInactiveDocsColor = Color.WHITE;
 
         //Instantiate the PagerAdapterImpl.
         mPagerAdapter = mCompat.newPagerAdapter(this);
@@ -253,25 +247,6 @@ public class AppTourDelegate {
         int nextSlidePosition = getCurrentSlide() + 1;
         setCurrentSlide(nextSlidePosition);
         return nextSlidePosition;
-    }
-
-
-    /**
-     * Set the color of the active dot indicator
-     *
-     * @param color Color value to set
-     */
-    public void setActiveDotColor(@ColorInt int color) {
-        mActiveDotColor = color;
-    }
-
-    /**
-     * Set the color of the inactive dot indicator
-     *
-     * @param color Color value to set
-     */
-    public void setInactiveDocsColor(@ColorInt int color) {
-        mInactiveDocsColor = color;
     }
 
     /**
@@ -397,8 +372,6 @@ public class AppTourDelegate {
 
             @Override
             public void onPageSelected(int position) {
-                mCurrentPosition = position;
-
                 //Hide SKIP button if last slide item, visible if not
                 if (position == (mPagerAdapter.getCount() - 1)) {
                     if (!mSkipForceHidden) {
@@ -455,7 +428,7 @@ public class AppTourDelegate {
             if (mNextClickListener != null) {
                 mNextClickListener.onTourClick(this);
             }
-            mIntroViewPager.setCurrentItem(mCurrentPosition + 1, true);
+            mIntroViewPager.setCurrentItem(mIntroViewPager.getCurrentItem() + 1, true);
         });
         mDoneSlideButton.setOnClickListener((it) -> {
             if (mDoneClickListener != null) {
