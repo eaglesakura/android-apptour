@@ -1,11 +1,7 @@
 <resources>
-    <string name="appTourSkipButton">Skip</string>
-    <string name="appTourNextButton">Next</string>
-    <string name="appTourDoneButton">Done</string>
+    <string name="AppTour.Skip">Skip</string>
+    <string name="AppTour.Next">Next</string>
+    <string name="AppTour.Done">Done</string>
 
-    <integer name="AppTour_Pager_Duration">250</integer>
-    <string name="appTourSlideTitlePlaceholder">Lorem ipsum dolor</string>
-    <string name="appTourSlideContentPlaceholder">Lorem ipsum dolor sit amet, consectetur adipiscing
-        elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    </string>
+    <integer name="AppTour.Pager.Duration">250</integer>
 </resources>

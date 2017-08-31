@@ -122,7 +122,7 @@ public class AppTourDelegate {
         {
             int layoutId = mCompat.getLayoutId(this);
             if (layoutId == 0) {
-                layoutId = R.layout.activity_app_tour;
+                layoutId = R.layout.apptour;
             }
             Activity activity = mCompat.getActivity(this);
             mRootView = inflater.inflate(layoutId, container, false);
@@ -130,10 +130,10 @@ public class AppTourDelegate {
 
         mIntroViewPager = mRootView.findViewById(R.id.AppTour_ViewPager);
         mSkipIntroButton = mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
-        mNextSlideImageButton = mRootView.findViewById(R.id.AppTour_Nav_NextSlide);
-        mDoneSlideButton = mRootView.findViewById(R.id.AppTour_Nav_Done);
+        mNextSlideImageButton = mRootView.findViewById(R.id.AppTour_NextSlide);
+        mDoneSlideButton = mRootView.findViewById(R.id.AppTour_Done);
         mSeparatorView = mRootView.findViewById(R.id.AppTour_Separator);
-        mDotsLayout = mRootView.findViewById(R.id.AppTour_Nav_Dots);
+        mDotsLayout = mRootView.findViewById(R.id.AppTour_Dots);
 
         mActiveDotColor = Color.RED;
         mInactiveDocsColor = Color.WHITE;
@@ -255,33 +255,6 @@ public class AppTourDelegate {
         int nextSlidePosition = getCurrentSlide() + 1;
         setCurrentSlide(nextSlidePosition);
         return nextSlidePosition;
-    }
-
-    /**
-     * Set the string value of the skip button
-     *
-     * @param text String value to set
-     */
-    public void setSkipText(@NonNull String text) {
-        mSkipIntroButton.setText(text);
-    }
-
-    /**
-     * Set the string value of the done button
-     *
-     * @param text String value to set
-     */
-    public void setDoneText(@NonNull String text) {
-        mDoneSlideButton.setText(text);
-    }
-
-    /**
-     * Set the text color of the skip button
-     *
-     * @param color Color value to set
-     */
-    public void setSkipButtonTextColor(@ColorInt int color) {
-        mSkipIntroButton.setTextColor(color);
     }
 
     /**

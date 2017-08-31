@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/backgroundRelativeLayout"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent">
@@ -29,42 +30,41 @@
                 android:layout_height="match_parent"
                 android:layout_marginLeft="7dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:text="@string/appTourSkipButton"/>
+                android:text="@string/AppTour.Skip"/>
 
         <ImageButton
-                android:id="@+id/AppTour.Nav.NextSlide"
+                app:srcCompat="@drawable/apptour_next"
+                android:id="@+id/AppTour.NextSlide"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:minWidth="90dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="7dp"
-                android:background="?android:attr/selectableItemBackground"
-                android:src="@drawable/ic_next_black_24dp"/>
+                android:background="?android:attr/selectableItemBackground"/>
 
         <Button
-                android:id="@+id/AppTour.Nav.Done"
+                android:id="@+id/AppTour.Done"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="7dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:text="@string/appTourDoneButton"
+                android:text="@string/AppTour.Done"
                 android:visibility="invisible"/>
 
         <LinearLayout
-                android:id="@+id/AppTour.Nav.Dots"
+                android:id="@+id/AppTour.Dots"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_centerVertical="true"
                 android:layout_toEndOf="@+id/AppTour.Nav.SkipIntro"
-                android:layout_toLeftOf="@+id/AppTour.Nav.NextSlide"
+                android:layout_toLeftOf="@+id/AppTour.NextSlide"
                 android:layout_toRightOf="@+id/AppTour.Nav.SkipIntro"
-                android:layout_toStartOf="@+id/AppTour.Nav.NextSlide"
+                android:layout_toStartOf="@+id/AppTour.NextSlide"
                 android:gravity="center"
                 android:orientation="horizontal"/>
-
     </RelativeLayout>
 
 </RelativeLayout>
