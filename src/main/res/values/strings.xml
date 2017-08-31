@@ -1,7 +1,0 @@
-<resources>
-    <string name="AppTour.Skip">Skip</string>
-    <string name="AppTour.Next">Next</string>
-    <string name="AppTour.Done">Done</string>
-
-    <integer name="AppTour.Pager.Duration">250</integer>
-</resources>

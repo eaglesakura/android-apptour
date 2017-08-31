@@ -1,0 +1,17 @@
+<resources>
+    <string name="AppTour.Skip">Skip</string>
+    <string name="AppTour.Next">Next</string>
+    <string name="AppTour.Done">Done</string>
+    <color name="AppTour.Indicator.ActiveColor">#E53935</color>
+    <color name="AppTour.Indicator.InactiveColor">#3F2D12</color>
+    <dimen name="AppTour.Indicator.Margin">2dp</dimen>
+    <dimen name="AppTour.Indicator.Size">12dp</dimen>
+    <integer name="AppTour.Indicator.Duration">250</integer>
+
+    <integer name="AppTour.Pager.Duration">250</integer>
+
+    <declare-styleable name="AppTourIndicator">
+        <attr name="srcActive" format="reference"/>
+        <attr name="srcInactive" format="reference"/>
+    </declare-styleable>
+</resources>

@@ -16,8 +16,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.AppCompatTextView;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +24,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
 public class AppTourDelegate {
 
@@ -36,16 +33,15 @@ public class AppTourDelegate {
     private Button mSkipIntroButton;
     private Button mDoneSlideButton;
     private ImageButton mNextSlideImageButton;
-    private View mSeparatorView;
 
     /**
-     * ドットの親レイアウト
+     * Indicator
      */
-    private ViewGroup mDotsLayout;
+    private AppTourIndicator mIndicator;
+
     /**
      * ドット表示
      */
-    private TextView[] mDots;
     private PagerAdapter mPagerAdapter;
     private int mCurrentPosition;
     private int mActiveDotColor;
@@ -132,8 +128,7 @@ public class AppTourDelegate {
         mSkipIntroButton = mRootView.findViewById(R.id.AppTour_Nav_SkipIntro);
         mNextSlideImageButton = mRootView.findViewById(R.id.AppTour_NextSlide);
         mDoneSlideButton = mRootView.findViewById(R.id.AppTour_Done);
-        mSeparatorView = mRootView.findViewById(R.id.AppTour_Separator);
-        mDotsLayout = mRootView.findViewById(R.id.AppTour_Dots);
+        mIndicator = mRootView.findViewById(R.id.AppTour_Dots);
 
         mActiveDotColor = Color.RED;
         mInactiveDocsColor = Color.WHITE;
@@ -145,8 +140,6 @@ public class AppTourDelegate {
         //Instantiate the indicator mDots if there are more than one slide
         if (mPagerAdapter.getCount() >= 2) {
             // 2ページ以上のスライドがある
-            setViewPagerDots();
-
             if (!mSkipForceHidden) {
                 mSkipIntroButton.setVisibility(View.VISIBLE);
             }
@@ -158,6 +151,11 @@ public class AppTourDelegate {
             if (!mDoneForceHidden) {
                 mDoneSlideButton.setVisibility(View.VISIBLE);
             }
+        }
+
+        // インジケータを初期化する
+        if (mIndicator != null) {
+            mIndicator.initializeIndicators(this, mPagerAdapter.getCount());
         }
 
         //  Dump status bar color
@@ -257,37 +255,6 @@ public class AppTourDelegate {
         return nextSlidePosition;
     }
 
-    /**
-     * Set the next button color to white
-     */
-    public void setNextButtonColorToWhite() {
-        mNextSlideImageButton.setImageResource(R.drawable.ic_next_white_24dp);
-    }
-
-    /**
-     * Set the next button color to black
-     */
-    public void setNextButtonColorToBlack() {
-        mNextSlideImageButton.setImageResource(R.drawable.ic_next_black_24dp);
-    }
-
-    /**
-     * Set the text color of the done button
-     *
-     * @param color Color value to set
-     */
-    public void setDoneButtonTextColor(@ColorInt int color) {
-        mDoneSlideButton.setTextColor(color);
-    }
-
-    /**
-     * Set the color of the separator between slide content and bottom controls
-     *
-     * @param color Color value to set
-     */
-    public void setSeparatorColor(@ColorInt int color) {
-        mSeparatorView.setBackgroundColor(color);
-    }
 
     /**
      * Set the color of the active dot indicator
@@ -359,14 +326,14 @@ public class AppTourDelegate {
      * Show indicator mDots
      */
     public void showIndicatorDots() {
-        mDotsLayout.setVisibility(View.VISIBLE);
+        mIndicator.setVisibility(this, View.VISIBLE);
     }
 
     /**
      * Hide indicator mDots
      */
     public void hideIndicatorDots() {
-        mDotsLayout.setVisibility(View.INVISIBLE);
+        mIndicator.setVisibility(this, View.INVISIBLE);
     }
 
     /**
@@ -464,14 +431,8 @@ public class AppTourDelegate {
                 }
 
                 //Set mDots
-                if (mPagerAdapter.getCount() > 1) {
-                    //Set current inactive mDots color
-                    for (int i = 0; i < mPagerAdapter.getCount(); i++) {
-                        mDots[i].setTextColor(mInactiveDocsColor);
-                    }
-
-                    //Set current active dot color
-                    mDots[position].setTextColor(mActiveDotColor);
+                if (mIndicator != null) {
+                    mIndicator.onPageSelected(AppTourDelegate.this, position);
                 }
 
                 // callback
@@ -501,22 +462,6 @@ public class AppTourDelegate {
                 mDoneClickListener.onTourClick(this);
             }
         });
-    }
-
-    private void setViewPagerDots() {
-        mDots = new AppCompatTextView[mPagerAdapter.getCount()];
-
-        //Set first inactive mDots color
-        for (int i = 0; i < mDots.length; i++) {
-            mDots[i] = new AppCompatTextView(mCompat.getActivity(this));
-            mDots[i].setText(Html.fromHtml("&#8226;"));
-            mDots[i].setTextSize(30);
-            mDots[i].setTextColor(mInactiveDocsColor);
-            mDotsLayout.addView(mDots[i]);
-        }
-
-        //Set first active dot color
-        mDots[0].setTextColor(mActiveDotColor);
     }
 
     private void fadeViewOut(final View view) {
