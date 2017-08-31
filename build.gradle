@@ -30,6 +30,8 @@ repositories {
 }
 
 apply plugin: 'com.android.library'
+group = "com.eaglesakura"
+version = ARTIFACT_VERSION + getArtifactVersionSuffix()
 
 android {
     compileSdkVersion 26
