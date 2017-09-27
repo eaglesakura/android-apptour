@@ -30,13 +30,20 @@ public class AppTourDelegate {
     private final ArgbEvaluator mArgbEvaluator = new ArgbEvaluator();
 
     private LockableViewPager mIntroViewPager;
+
+    @Nullable
     private Button mSkipIntroButton;
+
+    @Nullable
     private Button mDoneSlideButton;
+
+    @Nullable
     private ImageButton mNextSlideImageButton;
 
     /**
      * Indicator
      */
+    @Nullable
     private AppTourIndicator mIndicator;
 
     /**
@@ -134,15 +141,19 @@ public class AppTourDelegate {
         //Instantiate the indicator mDots if there are more than one slide
         if (mPagerAdapter.getCount() >= 2) {
             // 2ページ以上のスライドがある
-            if (!mSkipForceHidden) {
+            if (!mSkipForceHidden && mSkipIntroButton != null) {
                 mSkipIntroButton.setVisibility(View.VISIBLE);
             }
         } else {
             // 1ページしかスライドがない
-            mSkipIntroButton.setVisibility(View.INVISIBLE);
-            mNextSlideImageButton.setVisibility(View.INVISIBLE);
+            if (mSkipIntroButton != null) {
+                mSkipIntroButton.setVisibility(View.INVISIBLE);
+            }
+            if (mNextSlideImageButton != null) {
+                mNextSlideImageButton.setVisibility(View.INVISIBLE);
+            }
 
-            if (!mDoneForceHidden) {
+            if (!mDoneForceHidden && mDoneSlideButton != null) {
                 mDoneSlideButton.setVisibility(View.VISIBLE);
             }
         }
@@ -348,7 +359,9 @@ public class AppTourDelegate {
     }
 
     private void setListeners() {
+        @Nullable
         ViewGroup controlsRoot = getView().findViewById(R.id.AppTour_Nav_Root);
+
         mIntroViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -361,7 +374,9 @@ public class AppTourDelegate {
                 }
 
                 mIntroViewPager.setBackgroundColor(color);
-                controlsRoot.setBackgroundColor(color);
+                if (controlsRoot != null) {
+                    controlsRoot.setBackgroundColor(color);
+                }
 
                 // setup statusbar color
                 Window window = mCompat.getActivity(AppTourDelegate.this).getWindow();
@@ -379,7 +394,7 @@ public class AppTourDelegate {
                         fadeViewOut(mSkipIntroButton);
                     }
                 } else {
-                    if (mSkipIntroButton.getVisibility() == View.INVISIBLE && !mSkipForceHidden) {
+                    if (mSkipIntroButton != null && mSkipIntroButton.getVisibility() == View.INVISIBLE && !mSkipForceHidden) {
                         fadeViewIn(mSkipIntroButton);
                     }
                 }
@@ -395,11 +410,11 @@ public class AppTourDelegate {
                         fadeViewIn(mDoneSlideButton);
                     }
                 } else {
-                    if (mNextSlideImageButton.getVisibility() == View.INVISIBLE && !mNextForceHidden) {
+                    if (mNextSlideImageButton != null && mNextSlideImageButton.getVisibility() == View.INVISIBLE && !mNextForceHidden) {
                         fadeViewIn(mNextSlideImageButton);
                     }
 
-                    if (mDoneSlideButton.getVisibility() == View.VISIBLE && !mDoneForceHidden) {
+                    if (mDoneSlideButton != null && mDoneSlideButton.getVisibility() == View.VISIBLE && !mDoneForceHidden) {
                         fadeViewOut(mDoneSlideButton);
                     }
                 }
@@ -420,25 +435,35 @@ public class AppTourDelegate {
             }
         });
 
-        mSkipIntroButton.setOnClickListener((it) -> {
-            if (mSkipClickListener != null) {
-                mSkipClickListener.onTourClick(this);
-            }
-        });
-        mNextSlideImageButton.setOnClickListener((it) -> {
-            if (mNextClickListener != null) {
-                mNextClickListener.onTourClick(this);
-            }
-            mIntroViewPager.setCurrentItem(mIntroViewPager.getCurrentItem() + 1, true);
-        });
-        mDoneSlideButton.setOnClickListener((it) -> {
-            if (mDoneClickListener != null) {
-                mDoneClickListener.onTourClick(this);
-            }
-        });
+        if (mSkipIntroButton != null) {
+            mSkipIntroButton.setOnClickListener((it) -> {
+                if (mSkipClickListener != null) {
+                    mSkipClickListener.onTourClick(this);
+                }
+            });
+        }
+        if (mNextSlideImageButton != null) {
+            mNextSlideImageButton.setOnClickListener((it) -> {
+                if (mNextClickListener != null) {
+                    mNextClickListener.onTourClick(this);
+                }
+                mIntroViewPager.setCurrentItem(mIntroViewPager.getCurrentItem() + 1, true);
+            });
+        }
+        if (mDoneSlideButton != null) {
+            mDoneSlideButton.setOnClickListener((it) -> {
+                if (mDoneClickListener != null) {
+                    mDoneClickListener.onTourClick(this);
+                }
+            });
+        }
     }
 
-    private void fadeViewOut(final View view) {
+    private void fadeViewOut(final @Nullable View view) {
+        if (view == null) {
+            return;
+        }
+
         Animation fadeOut = AnimationUtils.loadAnimation(mCompat.getActivity(this).getApplicationContext(), android.R.anim.fade_out);
         fadeOut.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -458,7 +483,10 @@ public class AppTourDelegate {
         view.startAnimation(fadeOut);
     }
 
-    private void fadeViewIn(final View view) {
+    private void fadeViewIn(final @Nullable View view) {
+        if (view == null) {
+            return;
+        }
         Animation fadeIn = AnimationUtils.loadAnimation(mCompat.getActivity(this).getApplicationContext(), android.R.anim.fade_in);
         fadeIn.setAnimationListener(new Animation.AnimationListener() {
             @Override
