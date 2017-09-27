@@ -219,6 +219,13 @@ public class AppTourDelegate {
     }
 
     /**
+     * ページ数を取得する
+     */
+    public int getSlideCount() {
+        return mPagerAdapter.getCount();
+    }
+
+    /**
      * Get which slide is currently active
      *
      * @return Returns the current active slide index
